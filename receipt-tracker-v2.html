@@ -264,6 +264,50 @@ tbody tr.expanded td{background:rgba(91,156,246,.03)}
 /* UTIL */
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+
+/* ══ PIN MODAL ══ */
+#pinModal{
+  display:none;position:fixed;inset:0;z-index:9999;
+  background:rgba(6,8,16,.85);backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;
+}
+#pinModal.show{ display:flex; }
+.pin-card{
+  background:var(--s1);border:1px solid var(--b2);border-radius:14px;
+  padding:32px 28px 24px;width:320px;text-align:center;
+  box-shadow:0 8px 40px rgba(0,0,0,.6);
+}
+.pin-icon{ font-size:32px;margin-bottom:12px; }
+.pin-title{ font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px; }
+.pin-sub{ font-size:11px;color:var(--t2);font-family:var(--mono);margin-bottom:22px; }
+.pin-inputs{ display:flex;gap:10px;justify-content:center;margin-bottom:10px; }
+.pin-box{
+  width:52px;height:60px;border-radius:8px;
+  border:1.5px solid var(--b2);background:var(--s2);
+  color:var(--text);font-size:24px;font-family:var(--mono);font-weight:700;
+  text-align:center;outline:none;transition:border-color .15s;
+}
+.pin-box:focus{ border-color:var(--blue);box-shadow:0 0 0 2px rgba(91,156,246,.2); }
+.pin-error{
+  font-size:11px;font-family:var(--mono);color:var(--red);
+  height:18px;margin-bottom:14px;opacity:0;transition:opacity .2s;
+}
+.pin-error.show{ opacity:1; }
+.pin-cancel{
+  padding:7px 20px;border-radius:6px;border:1px solid var(--b2);
+  background:var(--s2);color:var(--t2);font-family:var(--mono);
+  font-size:11px;font-weight:700;cursor:pointer;
+  transition:background .15s,color .15s;
+}
+.pin-cancel:hover{ background:var(--b1);color:var(--text); }
+@keyframes pinShake{
+  0%,100%{ transform:translateX(0) }
+  20%{ transform:translateX(-6px) }
+  40%{ transform:translateX(6px) }
+  60%{ transform:translateX(-4px) }
+  80%{ transform:translateX(4px) }
+}
+.pin-inputs.shake{ animation:pinShake .35s ease; }
 </style>
 </head>
 <body>
@@ -666,6 +710,11 @@ const QUERIES = {
 
 // ══ UI ══
 function showPage(p, btn){
+  if(p === 'upload' && !_uploadUnlocked){
+    _pendingUploadBtn = btn;
+    showPinModal();
+    return;
+  }
   document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
   document.getElementById('page-'+p).classList.add('active');
@@ -1252,6 +1301,79 @@ function updateSyncTime(ts){
 }
 
 boot();
+
+// ══ PIN GATE ══
+let _uploadUnlocked = false;
+let _pendingUploadBtn = null;
+
+function showPinModal(){
+  const m = document.getElementById('pinModal');
+  document.querySelectorAll('.pin-box').forEach(b=>b.value='');
+  document.getElementById('pinError').classList.remove('show');
+  document.getElementById('pinInputs').classList.remove('shake');
+  m.classList.add('show');
+  setTimeout(()=>document.getElementById('pin0').focus(),50);
+}
+
+function hidePinModal(){
+  document.getElementById('pinModal').classList.remove('show');
+}
+
+function checkPin(){
+  const pin = [0,1,2,3].map(i=>document.getElementById('pin'+i).value).join('');
+  if(pin === '9944'){
+    _uploadUnlocked = true;
+    hidePinModal();
+    showPage('upload', _pendingUploadBtn);
+  } else {
+    const inp = document.getElementById('pinInputs');
+    inp.classList.remove('shake');
+    void inp.offsetWidth;
+    inp.classList.add('shake');
+    document.getElementById('pinError').classList.add('show');
+    document.querySelectorAll('.pin-box').forEach(b=>b.value='');
+    setTimeout(()=>document.getElementById('pin0').focus(),50);
+  }
+}
+
+function onPinInput(el, idx){
+  el.value = el.value.replace(/[^0-9]/g,'').slice(-1);
+  if(el.value && idx < 3){
+    document.getElementById('pin'+(idx+1)).focus();
+  }
+  if(idx === 3 && el.value){
+    setTimeout(checkPin, 60);
+  }
+}
+
+function onPinKey(e, idx){
+  if(e.key === 'Backspace' && !e.target.value && idx > 0){
+    document.getElementById('pin'+(idx-1)).focus();
+  }
+  if(e.key === 'Enter') checkPin();
+}
 </script>
+
+<!-- ══ PIN MODAL ══ -->
+<div id="pinModal">
+  <div class="pin-card">
+    <div class="pin-icon">🔒</div>
+    <div class="pin-title">ใส่รหัสเพื่อเข้าหน้าอัพโหลด</div>
+    <div class="pin-sub">กรอกรหัส 4 หลัก</div>
+    <div class="pin-inputs" id="pinInputs">
+      <input class="pin-box" id="pin0" type="password" maxlength="1" inputmode="numeric"
+        oninput="onPinInput(this,0)" onkeydown="onPinKey(event,0)">
+      <input class="pin-box" id="pin1" type="password" maxlength="1" inputmode="numeric"
+        oninput="onPinInput(this,1)" onkeydown="onPinKey(event,1)">
+      <input class="pin-box" id="pin2" type="password" maxlength="1" inputmode="numeric"
+        oninput="onPinInput(this,2)" onkeydown="onPinKey(event,2)">
+      <input class="pin-box" id="pin3" type="password" maxlength="1" inputmode="numeric"
+        oninput="onPinInput(this,3)" onkeydown="onPinKey(event,3)">
+    </div>
+    <div class="pin-error" id="pinError">รหัสไม่ถูกต้อง ลองใหม่อีกครั้ง</div>
+    <button class="pin-cancel" onclick="hidePinModal()">ยกเลิก</button>
+  </div>
+</div>
+
 </body>
 </html>
