@@ -936,8 +936,8 @@ function renderDupPage(){
         <div class="dup-ids">IDs: ${d.ids.map(id=>`${id} (${stores[id]?.name||'?'})`).join(' / ')}</div>
       </div>
       <div class="dup-actions">
-        <button class="dup-act-btn" onclick="mergeDup('${d.ids[0]}','${d.ids[1]}')">Merge → เก็บ ${d.ids[0]}</button>
-        <button class="dup-act-btn danger" onclick="deleteDup('${d.ids[1]}')">ลบ ${d.ids[1]}</button>
+        <button class="dup-act-btn" onclick="requirePin(()=>mergeDup('${d.ids[0]}','${d.ids[1]}'))">Merge → เก็บ ${d.ids[0]}</button>
+        <button class="dup-act-btn danger" onclick="requirePin(()=>deleteDup('${d.ids[1]}'))">ลบ ${d.ids[1]}</button>
       </div>
     </div>
   `).join('');
@@ -966,7 +966,6 @@ function mergeDup(keepId, removeId){
 }
 
 function deleteDup(id){
-  if(!confirm(`ลบ store ${id}?`)) return;
   const stores = loadStores();
   const rf = loadRF();
   delete stores[id];
@@ -1305,6 +1304,7 @@ boot();
 // ══ PIN GATE ══
 let _uploadUnlocked = false;
 let _pendingUploadBtn = null;
+let _pinCallback = null;
 
 function showPinModal(){
   const m = document.getElementById('pinModal');
@@ -1317,14 +1317,26 @@ function showPinModal(){
 
 function hidePinModal(){
   document.getElementById('pinModal').classList.remove('show');
+  _pinCallback = null;
+}
+
+function requirePin(fn){
+  _pinCallback = fn;
+  showPinModal();
 }
 
 function checkPin(){
   const pin = [0,1,2,3].map(i=>document.getElementById('pin'+i).value).join('');
   if(pin === '9944'){
-    _uploadUnlocked = true;
     hidePinModal();
-    showPage('upload', _pendingUploadBtn);
+    if(_pinCallback){
+      const cb = _pinCallback;
+      _pinCallback = null;
+      cb();
+    } else {
+      _uploadUnlocked = true;
+      showPage('upload', _pendingUploadBtn);
+    }
   } else {
     const inp = document.getElementById('pinInputs');
     inp.classList.remove('shake');
