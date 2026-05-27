@@ -427,7 +427,7 @@ tbody tr.expanded td{background:rgba(91,156,246,.03)}
             <option value="<=">&le;</option>
             <option value="=">=</option>
           </select>
-          <input class="cf-val" id="cf-val" type="number" value="30">
+          <input class="cf-val" id="cf-val" type="number" value="29">
         </div>
         <button class="go-btn" onclick="applyCustom()">กรอง</button>
       </div>
@@ -700,8 +700,8 @@ let expandedId = null;
 
 const QUERIES = {
   all:        { fn:()=>true,                       title:'ร้านค้าทั้งหมด',          desc:'แสดงทุกร้านค้าในระบบ' },
-  gap:        { fn:s=>s.total>30&&s.rf<29,         title:'Total > 30 และ RF < 29',  desc:'ร้านที่มีใบเสร็จมาก แต่อัพ RF น้อย' },
-  rf30:       { fn:s=>s.rf>30,                     title:'RF ใน Roboflow > 30 ใบ',  desc:'ร้านที่อัพ Roboflow ไปแล้วมากกว่า 30 ใบ' },
+  gap:        { fn:s=>s.total>29&&s.rf<30,         title:'Total > 30 และ RF < 29',  desc:'ร้านที่มีใบเสร็จมาก แต่อัพ RF น้อย' },
+  rf30:       { fn:s=>s.rf>29,                     title:'Roboflow > 30 ใบ',        desc:'ร้านที่อัพ Roboflow ไปแล้วมากกว่า 30 ใบ' },
   zero:       { fn:s=>s.rf===0&&s.total>0,         title:'ยังไม่อัพ RF เลย',        desc:'ร้านที่ยังไม่ได้เริ่มอัพขึ้น Roboflow' },
   done:       { fn:s=>s.pending===0&&s.total>0,    title:'อัพ RF ครบ 100%',         desc:'ร้านที่อัพ Roboflow ครบแล้ว' },
   high:       { fn:s=>s.priority>70&&s.pending>0,  title:'Priority สูง — ต้องรีบอัพ',desc:'มีใบเสร็จเยอะ แต่ยังไม่อัพ RF' },
