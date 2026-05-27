@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Receipt Tracker — FuturePark v2</title>
+<script src="https://accounts.google.com/gsi/client" async></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -320,6 +321,22 @@ tbody tr.expanded td{background:rgba(91,156,246,.03)}
 .hm-sdiff{font-size:10px;margin-top:4px;font-weight:700;font-family:var(--mono)}
 .diff-easy{color:var(--green)}.diff-hard{color:var(--red)}
 
+/* ══ LOGIN SCREEN ══ */
+#loginScreen{position:fixed;inset:0;z-index:99999;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column}
+#loginScreen.hidden{display:none}
+.login-card{background:var(--s1);border:1px solid var(--b2);border-radius:16px;padding:36px 32px;width:340px;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.5)}
+.login-logo{width:52px;height:52px;border-radius:12px;margin:0 auto 16px;overflow:hidden;background:linear-gradient(135deg,var(--blue),var(--cyan))}
+.login-logo img{width:100%;height:100%;object-fit:contain}
+.login-title{font-size:16px;font-weight:700;margin-bottom:4px}
+.login-sub{font-size:11px;color:var(--t2);font-family:var(--mono);margin-bottom:24px}
+.login-err{font-size:11px;color:var(--red);font-family:var(--mono);margin-top:14px;min-height:18px}
+.login-footer{font-size:10px;color:var(--t3);font-family:var(--mono);margin-top:18px}
+.user-chip{display:flex;align-items:center;gap:6px;padding:3px 10px 3px 4px;border-radius:20px;background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.18)}
+.user-avatar{width:22px;height:22px;border-radius:50%;object-fit:cover}
+.user-email{font-size:10px;color:var(--green);font-family:var(--mono);font-weight:700;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.signout-btn{padding:3px 10px;border-radius:5px;border:1px solid var(--b2);background:var(--s2);color:var(--t2);font-size:10px;font-family:var(--mono);font-weight:700;cursor:pointer;transition:all .15s}
+.signout-btn:hover{border-color:var(--red);color:var(--red)}
+
 /* ══ PIN MODAL ══ */
 #pinModal{
   display:none;position:fixed;inset:0;z-index:9999;
@@ -367,6 +384,29 @@ tbody tr.expanded td{background:rgba(91,156,246,.03)}
 </head>
 <body>
 
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo"><img src="MyLogo.jpg" alt="Logo"></div>
+    <div class="login-title">Receipt Tracker</div>
+    <div class="login-sub">FuturePark · เข้าสู่ระบบด้วย Google</div>
+    <div id="g_id_onload"
+      data-client_id="329222107913-7p876ju00u275a6aba8rb1fpc2n85rns.apps.googleusercontent.com"
+      data-callback="handleGoogleLogin"
+      data-auto_select="false">
+    </div>
+    <div class="g_id_signin"
+      data-type="standard"
+      data-size="large"
+      data-theme="filled_blue"
+      data-text="signin_with"
+      data-locale="th">
+    </div>
+    <div class="login-err" id="loginErr"></div>
+    <div class="login-footer">เฉพาะบัญชีที่ได้รับอนุญาตเท่านั้น</div>
+  </div>
+</div>
+
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="brand">
@@ -381,6 +421,11 @@ tbody tr.expanded td{background:rgba(91,156,246,.03)}
   </div>
   <div class="topbar-right">
     <div class="live-pill" id="storagePill"><div class="live-dot"></div><span class="live-text" id="storageLabel">loading...</span></div>
+    <div class="user-chip" id="userChip" style="display:none">
+      <img class="user-avatar" id="userAvatar" src="" alt="">
+      <span class="user-email" id="userEmail"></span>
+    </div>
+    <button class="signout-btn" id="signoutBtn" style="display:none" onclick="signOut()">ออกจากระบบ</button>
     <div class="nav-tabs">
       <button class="nav-tab active" onclick="showPage('dash',this)">📊 Dashboard</button>
       <button class="nav-tab" onclick="showPage('upload',this)">⬆ อัพโหลด</button>
@@ -1362,7 +1407,62 @@ function updateSyncTime(ts){
   }catch(e){}
 }
 
-boot();
+// ══ AUTH ══
+const ALLOWED_EMAILS = ['user@rocket.in.th'];
+
+function parseJwt(token){
+  try{
+    const b64 = token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/');
+    return JSON.parse(atob(b64));
+  }catch(e){return null}
+}
+
+function showLoginErr(msg){
+  const el = document.getElementById('loginErr');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function handleGoogleLogin(response){
+  const payload = parseJwt(response.credential);
+  if(!payload){ showLoginErr('ไม่สามารถอ่านข้อมูลผู้ใช้ได้'); return; }
+  const email = payload.email || '';
+  if(!ALLOWED_EMAILS.includes(email)){
+    showLoginErr('❌ ' + email + ' ไม่มีสิทธิ์เข้าใช้งาน');
+    return;
+  }
+  const user = {email, name: payload.name||'', picture: payload.picture||''};
+  sessionStorage.setItem('auth', JSON.stringify(user));
+  applyAuth(user);
+  boot();
+}
+
+function applyAuth(user){
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('userEmail').textContent = user.email;
+  if(user.picture){
+    document.getElementById('userAvatar').src = user.picture;
+    document.getElementById('userChip').style.display = 'flex';
+  } else {
+    document.getElementById('userChip').style.display = 'none';
+  }
+  document.getElementById('signoutBtn').style.display = 'block';
+}
+
+function signOut(){
+  sessionStorage.removeItem('auth');
+  location.reload();
+}
+
+(function initAuth(){
+  const stored = sessionStorage.getItem('auth');
+  if(stored){
+    try{
+      const user = JSON.parse(stored);
+      if(ALLOWED_EMAILS.includes(user.email)){ applyAuth(user); boot(); return; }
+    }catch(e){}
+  }
+})();
 
 // ══ PIN GATE ══
 let _uploadUnlocked = false;
