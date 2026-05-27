@@ -380,22 +380,6 @@ tbody tr.expanded td{background:rgba(91,156,246,.03)}
   80%{ transform:translateX(4px) }
 }
 .pin-inputs.shake{ animation:pinShake .35s ease; }
-
-/* ══ POPUP FILTER BAR ══ */
-.dash-layout{grid-template-columns:1fr}
-.leftnav{display:none}
-.filter-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--b1);background:var(--s1);position:sticky;top:52px;z-index:200}
-.filter-bar .search-inp{flex:1;min-width:0}
-.flt-wrap{position:relative;flex-shrink:0}
-.flt-toggle{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:6px;border:1px solid var(--b2);background:var(--s2);color:var(--text);font-size:12px;cursor:pointer;white-space:nowrap;transition:all .15s;font-family:var(--sans)}
-.flt-toggle:hover{border-color:var(--blue);color:var(--blue)}
-.flt-toggle.on{border-color:rgba(91,156,246,.4);background:rgba(91,156,246,.08);color:var(--blue)}
-.flt-caret{font-size:9px;color:var(--t3);margin-left:2px}
-.filter-panel{display:none;position:absolute;right:0;top:calc(100% + 6px);width:256px;background:var(--s1);border:1px solid var(--b2);border-radius:10px;z-index:600;box-shadow:0 8px 28px rgba(0,0,0,.45);padding:8px 8px 10px}
-.filter-panel.open{display:block}
-.fp-divider{border-top:1px solid var(--b1);margin:6px 0}
-.fp-title{font-size:9px;font-family:var(--mono);font-weight:700;color:var(--t3);letter-spacing:.12em;text-transform:uppercase;padding:2px 6px 6px}
-.fp-cust{padding:4px 4px 2px}
 </style>
 </head>
 <body>
@@ -494,40 +478,70 @@ tbody tr.expanded td{background:rgba(91,156,246,.03)}
   <!-- LAYOUT -->
   <div class="dash-layout">
 
+    <!-- LEFT NAV -->
+    <div class="leftnav">
+      <div class="nav-sec">
+        <div class="nav-sec-title">คำถามที่ใช้บ่อย</div>
+        <button class="q-btn active" id="q-all" onclick="applyQ('all',this)">
+          <span class="q-icon">📋</span><span class="q-text">ร้านค้าทั้งหมด</span>
+          <span class="q-badge" id="qb-all">0</span>
+        </button>
+        <button class="q-btn" id="q-gap" onclick="applyQ('gap',this)">
+          <span class="q-icon">🎯</span><span class="q-text">Total &gt;30 และ RF &lt;29</span>
+          <span class="q-badge" id="qb-gap">0</span>
+        </button>
+        <button class="q-btn" id="q-rf30" onclick="applyQ('rf30',this)">
+          <span class="q-icon">📤</span><span class="q-text">Roboflow &gt;30 ใบ</span>
+          <span class="q-badge" id="qb-rf30">0</span>
+        </button>
+        <button class="q-btn" id="q-zero" onclick="applyQ('zero',this)">
+          <span class="q-icon">🚨</span><span class="q-text">ยังไม่อัพ RF เลย</span>
+          <span class="q-badge" id="qb-zero">0</span>
+        </button>
+        <button class="q-btn" id="q-done" onclick="applyQ('done',this)">
+          <span class="q-icon">✅</span><span class="q-text">อัพ RF ครบ 100%</span>
+          <span class="q-badge" id="qb-done">0</span>
+        </button>
+        <button class="q-btn" id="q-high" onclick="applyQ('high',this)">
+          <span class="q-icon">🔴</span><span class="q-text">Priority สูง</span>
+          <span class="q-badge" id="qb-high">0</span>
+        </button>
+        <button class="q-btn" id="q-pending-id" onclick="applyQ('pending-id',this)">
+          <span class="q-icon">⏳</span><span class="q-text">ยังไม่มี Store ID</span>
+          <span class="q-badge" id="qb-pending-id">0</span>
+        </button>
+      </div>
+
+      <div class="cust-wrap">
+        <div class="nav-sec-title" style="padding-bottom:5px">กรองเอง</div>
+        <div class="cust-row">
+          <select class="cf-sel" id="cf-field">
+            <option value="total">Total</option>
+            <option value="rf">RF อัพแล้ว</option>
+            <option value="pending">Pending</option>
+            <option value="pct">RF %</option>
+          </select>
+          <select class="cf-op" id="cf-op">
+            <option value=">">&gt;</option>
+            <option value=">=">&ge;</option>
+            <option value="<">&lt;</option>
+            <option value="<=">&le;</option>
+            <option value="=">=</option>
+          </select>
+          <input class="cf-val" id="cf-val" type="number" value="29">
+        </div>
+        <button class="go-btn" onclick="applyCustom()">กรอง</button>
+      </div>
+
+      <div class="search-wrap">
+        <input class="search-inp" id="searchInp" type="text" placeholder="🔍 ค้นหาชื่อร้านค้า หรือ Store ID..." oninput="onSearch()">
+      </div>
+
+      <div class="mini-list" id="miniList"></div>
+    </div>
 
     <!-- CONTENT -->
     <div class="content">
-
-      <!-- FILTER BAR -->
-      <div class="filter-bar">
-        <input class="search-inp" id="searchInp" type="text" placeholder="🔍 ค้นหาชื่อร้านค้า หรือ Store ID..." oninput="onSearch()">
-        <div class="flt-wrap">
-          <button class="flt-toggle" id="fltToggle" onclick="toggleFilterPanel()">
-            <span id="fltLabel">📋 ร้านค้าทั้งหมด</span><span id="fltCount" class="q-badge" style="margin-left:4px">0</span><span class="flt-caret">▾</span>
-          </button>
-          <div class="filter-panel" id="filterPanel">
-            <div class="fp-title">กรองด่วน</div>
-            <button class="q-btn active" id="q-all" onclick="applyQ('all',this)"><span class="q-icon">📋</span><span class="q-text">ร้านค้าทั้งหมด</span><span class="q-badge" id="qb-all">0</span></button>
-            <button class="q-btn" id="q-gap" onclick="applyQ('gap',this)"><span class="q-icon">🎯</span><span class="q-text">Total &gt;30 และ RF &lt;29</span><span class="q-badge" id="qb-gap">0</span></button>
-            <button class="q-btn" id="q-rf30" onclick="applyQ('rf30',this)"><span class="q-icon">📤</span><span class="q-text">Roboflow &gt;30 ใบ</span><span class="q-badge" id="qb-rf30">0</span></button>
-            <button class="q-btn" id="q-zero" onclick="applyQ('zero',this)"><span class="q-icon">🚨</span><span class="q-text">ยังไม่อัพ RF เลย</span><span class="q-badge" id="qb-zero">0</span></button>
-            <button class="q-btn" id="q-done" onclick="applyQ('done',this)"><span class="q-icon">✅</span><span class="q-text">อัพ RF ครบ 100%</span><span class="q-badge" id="qb-done">0</span></button>
-            <button class="q-btn" id="q-high" onclick="applyQ('high',this)"><span class="q-icon">🔴</span><span class="q-text">Priority สูง</span><span class="q-badge" id="qb-high">0</span></button>
-            <button class="q-btn" id="q-pending-id" onclick="applyQ('pending-id',this)"><span class="q-icon">⏳</span><span class="q-text">ยังไม่มี Store ID</span><span class="q-badge" id="qb-pending-id">0</span></button>
-            <div class="fp-divider"></div>
-            <div class="fp-title">กรองเอง</div>
-            <div class="fp-cust">
-              <div class="cust-row">
-                <select class="cf-sel" id="cf-field"><option value="total">Total</option><option value="rf">RF อัพแล้ว</option><option value="pending">Pending</option><option value="pct">RF %</option></select>
-                <select class="cf-op" id="cf-op"><option value=">">&gt;</option><option value=">=">&ge;</option><option value="<">&lt;</option><option value="<=">&le;</option><option value="=">=</option></select>
-                <input class="cf-val" id="cf-val" type="number" value="29">
-              </div>
-              <button class="go-btn" onclick="applyCustom()">กรอง</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div class="result-hdr">
         <div>
           <div class="result-title" id="result-title">ร้านค้าทั้งหมด</div>
@@ -826,10 +840,6 @@ function applyQ(key, btn){
   filtered = all.filter(s=> q.fn(s) && (!sq || s.name.toLowerCase().includes(sq) || String(s.id).includes(sq)));
   document.getElementById('result-title').textContent = q.title;
   document.getElementById('result-desc').textContent  = q.desc;
-  const lbl = btn ? btn.querySelector('.q-icon').textContent + ' ' + btn.querySelector('.q-text').textContent : q.title;
-  const fl = document.getElementById('fltLabel'); if(fl) fl.textContent = lbl;
-  const ft = document.getElementById('fltToggle'); if(ft) ft.classList.toggle('on', key !== 'all');
-  closeFilterPanel();
   resort();
   renderMiniList();
 }
@@ -848,27 +858,11 @@ function applyCustom(){
   filtered = computeStores().filter(s=>fns[op](s[field])&&(!sq||s.name.toLowerCase().includes(sq)||String(s.id).includes(sq)));
   document.getElementById('result-title').textContent = `${labels[field]} ${opLbl[op]} ${val}`;
   document.getElementById('result-desc').textContent  = 'กรองแบบกำหนดเอง';
-  const fl = document.getElementById('fltLabel'); if(fl) fl.textContent = `⚙ ${labels[field]} ${opLbl[op]} ${val}`;
-  const ft = document.getElementById('fltToggle'); if(ft) ft.classList.add('on');
-  closeFilterPanel();
   resort();
   renderMiniList();
 }
 
 function onSearch(){ applyQ(activeQ, document.getElementById('q-'+activeQ)||null) }
-
-function toggleFilterPanel(){
-  const panel = document.getElementById('filterPanel');
-  panel.classList.toggle('open');
-}
-function closeFilterPanel(){
-  const panel = document.getElementById('filterPanel');
-  if(panel) panel.classList.remove('open');
-}
-document.addEventListener('click', e=>{
-  const wrap = document.querySelector('.flt-wrap');
-  if(wrap && !wrap.contains(e.target)) closeFilterPanel();
-});
 
 function resort(){
   const k = document.getElementById('sortSel').value;
@@ -921,13 +915,11 @@ function updateGlobal(){
 function updateStats(){
   document.getElementById('r-stores').textContent  = filtered.length.toLocaleString();
   document.getElementById('r-pending').textContent = filtered.reduce((a,s)=>a+s.pending,0).toLocaleString();
-  const fc = document.getElementById('fltCount'); if(fc) fc.textContent = filtered.length.toLocaleString();
 }
 
 // ══ MINI LIST ══
 function renderMiniList(){
   const wrap = document.getElementById('miniList');
-  if(!wrap) return;
   if(!filtered.length){wrap.innerHTML='<div style="text-align:center;padding:20px;color:var(--t3);font-size:11px;font-family:var(--mono)">ไม่พบ</div>';return}
   wrap.innerHTML = filtered.map(s=>{
     const dc = s.pending===0?'var(--green)':s.priority>70?'var(--red)':s.priority>35?'var(--yellow)':'var(--t3)';
