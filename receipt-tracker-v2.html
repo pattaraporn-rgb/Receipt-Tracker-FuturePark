@@ -534,7 +534,7 @@ tbody tr.expanded td{background:rgba(91,156,246,.03)}
       </div>
 
       <div class="search-wrap">
-        <input class="search-inp" id="searchInp" type="text" placeholder="🔍 ค้นหาชื่อร้านค้า..." oninput="onSearch()">
+        <input class="search-inp" id="searchInp" type="text" placeholder="🔍 ค้นหาชื่อร้านค้า หรือ Store ID..." oninput="onSearch()">
       </div>
 
       <div class="mini-list" id="miniList"></div>
@@ -837,7 +837,7 @@ function applyQ(key, btn){
   const q = QUERIES[key];
   const sq = document.getElementById('searchInp').value.toLowerCase();
   const all = computeStores();
-  filtered = all.filter(s=> q.fn(s) && (!sq || s.name.toLowerCase().includes(sq)));
+  filtered = all.filter(s=> q.fn(s) && (!sq || s.name.toLowerCase().includes(sq) || String(s.id).includes(sq)));
   document.getElementById('result-title').textContent = q.title;
   document.getElementById('result-desc').textContent  = q.desc;
   resort();
@@ -855,7 +855,7 @@ function applyCustom(){
   const sq = document.getElementById('searchInp').value.toLowerCase();
   const labels = {total:'Total',rf:'RF อัพแล้ว',pending:'Pending',pct:'RF %'};
   const opLbl  = {'>':'>','>=':'≥','<':'<','<=':'≤','=':'='};
-  filtered = computeStores().filter(s=>fns[op](s[field])&&(!sq||s.name.toLowerCase().includes(sq)));
+  filtered = computeStores().filter(s=>fns[op](s[field])&&(!sq||s.name.toLowerCase().includes(sq)||String(s.id).includes(sq)));
   document.getElementById('result-title').textContent = `${labels[field]} ${opLbl[op]} ${val}`;
   document.getElementById('result-desc').textContent  = 'กรองแบบกำหนดเอง';
   resort();
