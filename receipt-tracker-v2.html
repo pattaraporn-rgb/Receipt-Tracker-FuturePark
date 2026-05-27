@@ -265,6 +265,61 @@ tbody tr.expanded td{background:rgba(91,156,246,.03)}
 ::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
 
+/* ══ HELP BUTTON + MODAL ══ */
+.help-trigger-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:6px;border:1px solid rgba(91,156,246,.3);background:rgba(91,156,246,.08);color:var(--blue);font-size:11px;font-family:var(--mono);font-weight:700;cursor:pointer;letter-spacing:.04em;transition:all .15s;flex-shrink:0}
+.help-trigger-btn:hover{background:rgba(91,156,246,.16);border-color:rgba(91,156,246,.55)}
+.help-trigger-btn .htb-icon{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--blue);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+#helpOverlay{display:none;position:fixed;inset:0;background:rgba(4,6,14,.75);backdrop-filter:blur(5px);z-index:8000;align-items:center;justify-content:center;padding:16px}
+#helpOverlay.open{display:flex;animation:hoFade .18s ease}
+@keyframes hoFade{from{opacity:0}to{opacity:1}}
+#helpModal{background:var(--s1);border:1px solid var(--b2);border-radius:14px;width:100%;max-width:640px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.6);animation:hmSlide .2s ease}
+@keyframes hmSlide{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+.hm-header{padding:16px 20px 12px;border-bottom:1px solid var(--b1);display:flex;align-items:center;gap:12px;flex-shrink:0}
+.hm-icon{width:34px;height:34px;border-radius:8px;background:rgba(91,156,246,.12);border:1px solid rgba(91,156,246,.25);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.hm-title{font-size:14px;font-weight:700;color:var(--text)}
+.hm-sub{font-size:10px;color:var(--t2);font-family:var(--mono);margin-top:2px}
+.hm-close{margin-left:auto;background:none;border:none;color:var(--t3);font-size:18px;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:5px;transition:background .12s,color .12s}
+.hm-close:hover{background:var(--s2);color:var(--text)}
+.hm-tabs{display:flex;gap:2px;padding:8px 20px 0;border-bottom:1px solid var(--b1);flex-shrink:0;overflow-x:auto;background:var(--s2)}
+.hm-tabs::-webkit-scrollbar{height:0}
+.hm-tab{padding:6px 12px;font-size:11px;font-weight:600;font-family:var(--mono);border:none;background:none;cursor:pointer;color:var(--t2);border-radius:6px 6px 0 0;border-bottom:2px solid transparent;transition:color .12s;white-space:nowrap;letter-spacing:.02em}
+.hm-tab.active{color:var(--blue);border-bottom-color:var(--blue);background:var(--s1)}
+.hm-tab:hover:not(.active){color:var(--text);background:rgba(255,255,255,.04)}
+.hm-body{overflow-y:auto;padding:18px 20px;flex:1}
+.hm-body::-webkit-scrollbar{width:3px}
+.hm-body::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
+.hm-panel{display:none}
+.hm-panel.active{display:block}
+.hm-sec{display:flex;align-items:center;gap:9px;padding:8px 12px;background:var(--s2);border:1px solid var(--b1);border-radius:7px;margin-bottom:10px}
+.hm-snum{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:var(--mono)}
+.sn-b{background:rgba(91,156,246,.15);color:var(--blue)}.sn-g{background:rgba(52,211,153,.12);color:var(--green)}.sn-y{background:rgba(251,191,36,.12);color:var(--yellow)}.sn-r{background:rgba(248,113,113,.12);color:var(--red)}
+.hm-stitle{font-size:12px;font-weight:700;color:var(--text)}
+.hm-stag{margin-left:auto;font-size:10px;color:var(--t2);background:var(--s3);border:1px solid var(--b1);padding:2px 8px;border-radius:20px;font-family:var(--mono);white-space:nowrap}
+.hm-steps{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.hm-step{display:flex;gap:9px;align-items:flex-start;padding:9px 12px;border:1px solid var(--b1);border-radius:7px;background:rgba(255,255,255,.01)}
+.hm-dot{width:5px;height:5px;border-radius:50%;margin-top:7px;flex-shrink:0}
+.db{background:var(--blue)}.dg{background:var(--green)}.dy{background:var(--yellow)}.dr{background:var(--red)}
+.hm-step-c{flex:1}
+.hm-slabel{font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px}
+.hm-sdesc{font-size:11px;color:var(--t2);line-height:1.6}
+.hm-tbl{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px;border:1px solid var(--b1);border-radius:6px;overflow:hidden;font-family:var(--mono)}
+.hm-tbl th{background:var(--s2);color:var(--t2);font-weight:600;padding:5px 9px;text-align:left;border-bottom:1px solid var(--b1);font-size:10px;letter-spacing:.04em}
+.hm-tbl td{padding:5px 9px;color:var(--text);border-bottom:1px solid rgba(26,34,53,.6)}
+.hm-tbl tr:last-child td{border-bottom:none}
+.badge-r{display:inline-block;padding:1px 7px;border-radius:3px;font-size:10px;font-weight:700;font-family:var(--mono);background:rgba(91,156,246,.12);color:var(--blue);border:1px solid rgba(91,156,246,.25)}
+.badge-a{display:inline-block;padding:1px 7px;border-radius:3px;font-size:10px;font-weight:700;font-family:var(--mono);background:rgba(52,211,153,.1);color:var(--green);border:1px solid rgba(52,211,153,.2)}
+.hm-warn,.hm-ok{display:flex;gap:8px;padding:9px 12px;border-radius:7px;margin-top:7px;font-size:11px;line-height:1.6;font-family:var(--mono)}
+.hm-warn{background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);color:var(--yellow)}
+.hm-ok{background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.18);color:var(--green)}
+.hm-warn .wi,.hm-ok .wi{flex-shrink:0;margin-top:1px}
+.chip{display:inline-block;background:var(--s3);border:1px solid var(--b2);border-radius:3px;font-family:var(--mono);font-size:10px;padding:1px 5px;color:var(--text)}
+.hm-sum{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.hm-scard{padding:10px 12px;border:1px solid var(--b1);border-radius:7px;background:rgba(255,255,255,.01)}
+.hm-saction{font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px}
+.hm-show{font-size:11px;color:var(--t2);font-family:var(--mono)}
+.hm-sdiff{font-size:10px;margin-top:4px;font-weight:700;font-family:var(--mono)}
+.diff-easy{color:var(--green)}.diff-hard{color:var(--red)}
+
 /* ══ PIN MODAL ══ */
 #pinModal{
   display:none;position:fixed;inset:0;z-index:9999;
@@ -495,8 +550,15 @@ tbody tr.expanded td{background:rgba(91,156,246,.03)}
 <!-- ══ UPLOAD PAGE ══ -->
 <div class="page" id="page-upload">
   <div class="upload-page">
-    <div class="upload-title">⬆ อัพโหลดข้อมูล</div>
-    <div class="upload-subtitle">3 templates · ดาวน์โหลด template → กรอกข้อมูล → อัพโหลด</div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px;gap:12px;flex-wrap:wrap">
+      <div>
+        <div class="upload-title">⬆ อัพโหลดข้อมูล</div>
+        <div class="upload-subtitle">3 templates · ดาวน์โหลด template → กรอกข้อมูล → อัพโหลด</div>
+      </div>
+      <button class="help-trigger-btn" onclick="openHelp()">
+        <span class="htb-icon">?</span>คู่มือการใช้งาน
+      </button>
+    </div>
 
     <!-- SETUP CARD -->
     <div style="background:var(--s1);border:1px solid var(--b2);border-radius:10px;padding:14px 16px;margin-bottom:20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
@@ -1348,6 +1410,25 @@ function checkPin(){
   }
 }
 
+function openHelp(){
+  document.getElementById('helpOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeHelp(){
+  document.getElementById('helpOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function closeOnBg(e){
+  if(e.target===document.getElementById('helpOverlay')) closeHelp();
+}
+function hmTab(id,btn){
+  document.querySelectorAll('.hm-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.hm-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeHelp(); });
+
 function onPinInput(el, idx){
   el.value = el.value.replace(/[^0-9]/g,'').slice(-1);
   if(el.value && idx < 3){
@@ -1365,6 +1446,119 @@ function onPinKey(e, idx){
   if(e.key === 'Enter') checkPin();
 }
 </script>
+
+<!-- ══ HELP MODAL ══ -->
+<div id="helpOverlay" onclick="closeOnBg(event)">
+  <div id="helpModal" role="dialog" aria-modal="true" aria-labelledby="hmTitle">
+    <div class="hm-header">
+      <div class="hm-icon">📋</div>
+      <div>
+        <div class="hm-title" id="hmTitle">คู่มือการใช้งานหน้าอัพโหลด</div>
+        <div class="hm-sub">FUTUREPARK RECEIPT TRACKER · UPLOAD GUIDE</div>
+      </div>
+      <button class="hm-close" onclick="closeHelp()" aria-label="ปิด">✕</button>
+    </div>
+    <div class="hm-tabs">
+      <button class="hm-tab active" onclick="hmTab('p1',this)">01 · แก้ชื่อร้าน</button>
+      <button class="hm-tab" onclick="hmTab('p2',this)">02 · ยอดใบเสร็จ</button>
+      <button class="hm-tab" onclick="hmTab('p3',this)">03 · แยก Drive</button>
+      <button class="hm-tab" onclick="hmTab('p4',this)">04 · ขั้นสูง</button>
+      <button class="hm-tab" onclick="hmTab('p5',this)">สรุป</button>
+    </div>
+    <div class="hm-body">
+      <!-- Panel 1 -->
+      <div id="p1" class="hm-panel active">
+        <div class="hm-sec"><div class="hm-snum sn-b">1</div><div class="hm-stitle">แก้ไขชื่อร้านค้า (Store Name)</div><span class="hm-stag">Template 1</span></div>
+        <div class="hm-steps">
+          <div class="hm-step"><div class="hm-dot db"></div><div class="hm-step-c">
+            <div class="hm-slabel">ดาวน์โหลด Template 1 และกรอกข้อมูล</div>
+            <div class="hm-sdesc">กรอก <span class="chip">store_id</span> เดิม และ <span class="chip">store_name</span> ใหม่ที่ต้องการ</div>
+            <table class="hm-tbl"><thead><tr><th>store_id</th><th>store_name</th></tr></thead><tbody><tr><td>100033</td><td style="color:var(--cyan)">ชื่อใหม่ที่ต้องการ</td></tr></tbody></table>
+          </div></div>
+          <div class="hm-step"><div class="hm-dot db"></div><div class="hm-step-c">
+            <div class="hm-slabel">อัพโหลดไฟล์ผ่าน Drop Zone ด้านบน</div>
+            <div class="hm-sdesc">ระบบจะ update ชื่อให้อัตโนมัติ (upsert) — ไม่สร้าง row ซ้ำ</div>
+          </div></div>
+        </div>
+      </div>
+      <!-- Panel 2 -->
+      <div id="p2" class="hm-panel">
+        <div class="hm-sec"><div class="hm-snum sn-g">2</div><div class="hm-stitle">แก้ไขยอดใบเสร็จ / เพิ่ม Drive</div><span class="hm-stag">Template 2</span></div>
+        <div class="hm-steps">
+          <div class="hm-step"><div class="hm-dot dg"></div><div class="hm-step-c">
+            <div class="hm-slabel">เลือก mode ให้ถูกต้องในแต่ละ row</div>
+            <div class="hm-sdesc"><span class="badge-r">replace</span> &nbsp;เขียนทับยอดเดิมทั้งหมด — ใช้เมื่ออัพยอดปัจจุบัน<br><span class="badge-a">add</span> &nbsp;&nbsp;&nbsp;&nbsp;บวกเพิ่มจากยอดเดิม — ใช้เมื่อมีใบเสร็จเพิ่มเข้ามาใหม่</div>
+          </div></div>
+          <div class="hm-step"><div class="hm-dot dg"></div><div class="hm-step-c">
+            <div class="hm-slabel">ใช้ทั้ง 2 mode ในไฟล์เดียวกันได้</div>
+            <div class="hm-sdesc">แต่ละ row มี mode ของตัวเอง</div>
+            <table class="hm-tbl"><thead><tr><th>store_id</th><th>drive_name</th><th>receipts</th><th>mode</th></tr></thead><tbody>
+              <tr><td>100033</td><td>Drive A</td><td>150</td><td><span class="badge-r">replace</span></td></tr>
+              <tr><td>100033</td><td>Drive B</td><td>50</td><td><span class="badge-a">add</span></td></tr>
+            </tbody></table>
+          </div></div>
+          <div class="hm-step"><div class="hm-dot dg"></div><div class="hm-step-c">
+            <div class="hm-slabel">เพิ่ม Drive ใหม่</div>
+            <div class="hm-sdesc">ใช้ Template 2 mode=<span class="chip">add</span> — ถ้า drive ยังไม่มีในระบบ จะสร้างให้อัตโนมัติ</div>
+          </div></div>
+        </div>
+      </div>
+      <!-- Panel 3 -->
+      <div id="p3" class="hm-panel">
+        <div class="hm-sec"><div class="hm-snum sn-y">3</div><div class="hm-stitle">แยก Drive เดิมออกเป็นหลาย Drive</div><span class="hm-stag">⚠ ต้องระวัง</span></div>
+        <div class="hm-steps">
+          <div class="hm-step"><div class="hm-dot dy"></div><div class="hm-step-c">
+            <div class="hm-slabel">❌ ห้ามทำแบบนี้ — ยอดจะบวมเป็น 2 เท่า</div>
+            <div class="hm-warn"><span class="wi">⚠</span>ถ้า add drive ใหม่โดยไม่ล้าง drive เดิมก่อน เช่น OUTPUT_organized3 = 30 แล้ว add Drive1+2+3 อีก 30 จะรวมเป็น 60 ❌</div>
+          </div></div>
+          <div class="hm-step"><div class="hm-dot dy"></div><div class="hm-step-c">
+            <div class="hm-slabel">✅ วิธีที่ถูก — บรรทัด replace ต้องอยู่ก่อน add เสมอ</div>
+            <div class="hm-ok"><span class="wi">✓</span>ระบบประมวลผลตามลำดับบรรทัด — ล้างยอดเดิมก่อน แล้วค่อย add drive ใหม่</div>
+            <table class="hm-tbl"><thead><tr><th>store_id</th><th>drive_name</th><th>receipts</th><th>mode</th></tr></thead><tbody>
+              <tr><td>100033</td><td style="color:var(--t2)">OUTPUT_organized3</td><td>0</td><td><span class="badge-r">replace</span></td></tr>
+              <tr><td>100033</td><td>Drive1</td><td>10</td><td><span class="badge-a">add</span></td></tr>
+              <tr><td>100033</td><td>Drive2</td><td>10</td><td><span class="badge-a">add</span></td></tr>
+              <tr><td>100033</td><td>Drive3</td><td>10</td><td><span class="badge-a">add</span></td></tr>
+            </tbody></table>
+          </div></div>
+        </div>
+      </div>
+      <!-- Panel 4 -->
+      <div id="p4" class="hm-panel">
+        <div class="hm-sec"><div class="hm-snum sn-r">4</div><div class="hm-stitle">การแก้ไขขั้นสูง</div><span class="hm-stag">Google Sheets โดยตรง</span></div>
+        <div class="hm-steps">
+          <div class="hm-step"><div class="hm-dot dr"></div><div class="hm-step-c">
+            <div class="hm-slabel">แก้ Store ID</div>
+            <div class="hm-sdesc">Store ID เป็น primary key — ต้องแก้ให้ตรงกันทุก sheet: <span class="chip">stores</span> <span class="chip">receipts</span> <span class="chip">roboflow</span> แล้วกด Refresh / Sync</div>
+            <div class="hm-warn" style="margin-top:7px"><span class="wi">⚠</span>เปลี่ยน Store ID ผ่านหน้าเว็บโดยตรง → ข้อมูล receipts และ roboflow หายทันที</div>
+          </div></div>
+          <div class="hm-step"><div class="hm-dot dr"></div><div class="hm-step-c">
+            <div class="hm-slabel">แก้ชื่อ Drive</div>
+            <div class="hm-sdesc">
+              <strong style="color:var(--text)">ทาง A</strong> — Template 2 mode=<span class="chip">add</span> drive ชื่อใหม่ (drive เก่าค้างอยู่)<br>
+              <strong style="color:var(--text)">ทาง B</strong> — แก้ตรงใน Google Sheets → sheet <span class="chip">receipts</span> → Refresh
+            </div>
+          </div></div>
+        </div>
+      </div>
+      <!-- Panel 5 -->
+      <div id="p5" class="hm-panel">
+        <div style="font-size:10px;font-family:var(--mono);font-weight:700;color:var(--t3);letter-spacing:.1em;margin-bottom:10px">สรุปการใช้งานทั้งหมด</div>
+        <div class="hm-sum">
+          <div class="hm-scard"><div class="hm-saction">🏪 ชื่อร้านค้า</div><div class="hm-show">Template 1 (upsert)</div><div class="hm-sdiff diff-easy">● ง่าย</div></div>
+          <div class="hm-scard"><div class="hm-saction">🔄 ยอดใบเสร็จ drive เดิม</div><div class="hm-show">Template 2 mode=replace</div><div class="hm-sdiff diff-easy">● ง่าย</div></div>
+          <div class="hm-scard"><div class="hm-saction">➕ เพิ่ม Drive ใหม่</div><div class="hm-show">Template 2 mode=add</div><div class="hm-sdiff diff-easy">● ง่าย</div></div>
+          <div class="hm-scard"><div class="hm-saction">🪪 Store ID / ชื่อ Drive</div><div class="hm-show">แก้ใน Google Sheets ทุก sheet</div><div class="hm-sdiff diff-hard">● ต้องระวัง</div></div>
+        </div>
+        <div style="margin-top:14px;padding:10px 12px;border:1px solid var(--b1);border-radius:7px;background:rgba(255,255,255,.01);font-size:10px;font-family:var(--mono);color:var(--t2);line-height:1.7">
+          <span style="color:var(--green)">✓</span> ระบบตรวจ template อัตโนมัติจาก column headers<br>
+          <span style="color:var(--green)">✓</span> ใช้ทั้ง replace และ add ในไฟล์เดียวกันได้<br>
+          <span style="color:var(--yellow)">⚠</span> บรรทัด replace ต้องอยู่ก่อน add เสมอ
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ══ PIN MODAL ══ -->
 <div id="pinModal">
