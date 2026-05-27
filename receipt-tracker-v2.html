@@ -1408,7 +1408,8 @@ function updateSyncTime(ts){
 }
 
 // ══ AUTH ══
-const ALLOWED_EMAILS = ['user@rocket.in.th'];
+const ALLOWED_DOMAIN = 'rocket.in.th';
+function isAllowed(email){ return typeof email === 'string' && email.endsWith('@' + ALLOWED_DOMAIN); }
 
 function parseJwt(token){
   try{
@@ -1427,8 +1428,8 @@ function handleGoogleLogin(response){
   const payload = parseJwt(response.credential);
   if(!payload){ showLoginErr('ไม่สามารถอ่านข้อมูลผู้ใช้ได้'); return; }
   const email = payload.email || '';
-  if(!ALLOWED_EMAILS.includes(email)){
-    showLoginErr('❌ ' + email + ' ไม่มีสิทธิ์เข้าใช้งาน');
+  if(!isAllowed(email)){
+    showLoginErr('❌ ' + email + ' ไม่มีสิทธิ์เข้าใช้งาน (ต้องใช้ @rocket.in.th)');
     return;
   }
   const user = {email, name: payload.name||'', picture: payload.picture||''};
@@ -1459,7 +1460,7 @@ function signOut(){
   if(stored){
     try{
       const user = JSON.parse(stored);
-      if(ALLOWED_EMAILS.includes(user.email)){ applyAuth(user); boot(); return; }
+      if(isAllowed(user.email)){ applyAuth(user); boot(); return; }
     }catch(e){}
   }
 })();
