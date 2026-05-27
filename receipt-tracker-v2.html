@@ -494,63 +494,6 @@ tbody tr.expanded td{background:rgba(91,156,246,.03)}
   <!-- LAYOUT -->
   <div class="dash-layout">
 
-    <!-- LEFT NAV -->
-    <div class="leftnav">
-      <div class="nav-sec">
-        <div class="nav-sec-title">คำถามที่ใช้บ่อย</div>
-        <button class="q-btn active" id="q-all" onclick="applyQ('all',this)">
-          <span class="q-icon">📋</span><span class="q-text">ร้านค้าทั้งหมด</span>
-          <span class="q-badge" id="qb-all">0</span>
-        </button>
-        <button class="q-btn" id="q-gap" onclick="applyQ('gap',this)">
-          <span class="q-icon">🎯</span><span class="q-text">Total &gt;30 และ RF &lt;29</span>
-          <span class="q-badge" id="qb-gap">0</span>
-        </button>
-        <button class="q-btn" id="q-rf30" onclick="applyQ('rf30',this)">
-          <span class="q-icon">📤</span><span class="q-text">Roboflow &gt;30 ใบ</span>
-          <span class="q-badge" id="qb-rf30">0</span>
-        </button>
-        <button class="q-btn" id="q-zero" onclick="applyQ('zero',this)">
-          <span class="q-icon">🚨</span><span class="q-text">ยังไม่อัพ RF เลย</span>
-          <span class="q-badge" id="qb-zero">0</span>
-        </button>
-        <button class="q-btn" id="q-done" onclick="applyQ('done',this)">
-          <span class="q-icon">✅</span><span class="q-text">อัพ RF ครบ 100%</span>
-          <span class="q-badge" id="qb-done">0</span>
-        </button>
-        <button class="q-btn" id="q-high" onclick="applyQ('high',this)">
-          <span class="q-icon">🔴</span><span class="q-text">Priority สูง</span>
-          <span class="q-badge" id="qb-high">0</span>
-        </button>
-        <button class="q-btn" id="q-pending-id" onclick="applyQ('pending-id',this)">
-          <span class="q-icon">⏳</span><span class="q-text">ยังไม่มี Store ID</span>
-          <span class="q-badge" id="qb-pending-id">0</span>
-        </button>
-      </div>
-
-      <div class="cust-wrap">
-        <div class="nav-sec-title" style="padding-bottom:5px">กรองเอง</div>
-        <div class="cust-row">
-          <select class="cf-sel" id="cf-field">
-            <option value="total">Total</option>
-            <option value="rf">RF อัพแล้ว</option>
-            <option value="pending">Pending</option>
-            <option value="pct">RF %</option>
-          </select>
-          <select class="cf-op" id="cf-op">
-            <option value=">">&gt;</option>
-            <option value=">=">&ge;</option>
-            <option value="<">&lt;</option>
-            <option value="<=">&le;</option>
-            <option value="=">=</option>
-          </select>
-          <input class="cf-val" id="cf-val" type="number" value="29">
-        </div>
-        <button class="go-btn" onclick="applyCustom()">กรอง</button>
-      </div>
-
-      <div class="mini-list" id="miniList"></div>
-    </div>
 
     <!-- CONTENT -->
     <div class="content">
@@ -560,7 +503,7 @@ tbody tr.expanded td{background:rgba(91,156,246,.03)}
         <input class="search-inp" id="searchInp" type="text" placeholder="🔍 ค้นหาชื่อร้านค้า หรือ Store ID..." oninput="onSearch()">
         <div class="flt-wrap">
           <button class="flt-toggle" id="fltToggle" onclick="toggleFilterPanel()">
-            <span id="fltLabel">📋 ร้านค้าทั้งหมด</span><span class="flt-caret">▾</span>
+            <span id="fltLabel">📋 ร้านค้าทั้งหมด</span><span id="fltCount" class="q-badge" style="margin-left:4px">0</span><span class="flt-caret">▾</span>
           </button>
           <div class="filter-panel" id="filterPanel">
             <div class="fp-title">กรองด่วน</div>
@@ -978,6 +921,7 @@ function updateGlobal(){
 function updateStats(){
   document.getElementById('r-stores').textContent  = filtered.length.toLocaleString();
   document.getElementById('r-pending').textContent = filtered.reduce((a,s)=>a+s.pending,0).toLocaleString();
+  const fc = document.getElementById('fltCount'); if(fc) fc.textContent = filtered.length.toLocaleString();
 }
 
 // ══ MINI LIST ══
