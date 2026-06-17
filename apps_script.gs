@@ -197,13 +197,28 @@ function upsertReceipts(rows) {
   const sh = getOrCreate(SH_STORES, ['store_id','store_name','drive_name','receipts','updated_at']);
   let ok = 0, warn = 0;
   const ts = new Date().toISOString();
+  const norm = s => String(s || '').toLowerCase().replace(/[\s\-_.,/]+/g, '');
 
   rows.forEach(row => {
-    const id    = String(row.store_id || '').trim();
+    let   id    = String(row.store_id || '').trim();
     const drive = String(row.drive_name || '').trim();
     const cnt   = Number(row.receipts);
     const mode  = String(row.mode || 'replace').toLowerCase();
     const nm    = String(row.store_name || '').trim();
+
+    // store_id ว่าง + มีชื่อ → จับคู่จากชื่อร้าน (normalized) ถ้าไม่เจอ สร้าง pending_ ให้อัตโนมัติ
+    if ((!id || id === 'null' || id === 'undefined') && nm) {
+      const vals = sh.getDataRange().getValues();
+      const found = vals.slice(1).find(r => norm(r[1]) === norm(nm));
+      if (found) {
+        id = String(found[0]);
+      } else {
+        let n = 1;
+        vals.forEach(r => { const m = String(r[0]).match(/^pending_(\d+)$/); if (m) n = Math.max(n, parseInt(m[1]) + 1); });
+        id = 'pending_' + String(n).padStart(3, '0');
+        sh.appendRow([id, nm, '', '', ts]);   // create the store row first
+      }
+    }
 
     if (!id || !drive || isNaN(cnt)) { warn++; return; }
 

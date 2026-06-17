@@ -296,6 +296,21 @@
 
     </div>
 
+    <!-- T4 — wide-format upload (easy path) -->
+    <div class="tpl-card" style="margin-bottom:20px;border-color:rgba(34,211,238,.35);background:rgba(34,211,238,.04)">
+      <div class="tpl-num" style="color:var(--cyan)">วิธีง่ายสุด · แนวนอน</div>
+      <div class="tpl-title">📊 อัพชีตทั้งแผ่น (drive เป็นคอลัมน์)</div>
+      <div class="tpl-desc">อัพไฟล์หน้าตาเหมือนชีตที่มีอยู่ได้เลย — แต่ละคอลัมน์ drive จะถูกแตกเป็นยอดต่อร้านให้อัตโนมัติ · <strong style="color:var(--cyan)">store_id ว่างได้</strong> ระบบจับจากชื่อร้าน ถ้าไม่เจอจะสร้าง pending_ ให้</div>
+      <div class="tpl-cols">
+        <span class="tpl-col">store_id</span>
+        <span class="tpl-col req">store_name *</span>
+        <span class="tpl-col">drive1</span>
+        <span class="tpl-col">drive2</span>
+        <span class="tpl-col">…</span>
+      </div>
+      <button class="dl-btn" onclick="downloadTemplate('wide')">⬇ ดาวน์โหลด Template (แนวนอน)</button>
+    </div>
+
     <!-- UPLOAD ZONE -->
     <div class="upload-zone" id="dropZone"
       ondragover="event.preventDefault();this.classList.add('dragover')"

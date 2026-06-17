@@ -24,15 +24,23 @@ function handleFile(file){
       if(!rows.length){logLine('warn','⚠ ไฟล์ว่างเปล่า');return}
 
       // Detect template by header
-      const keys = Object.keys(rows[0]).map(k=>k.trim().toLowerCase());
+      const origKeys = Object.keys(rows[0]);
+      const keys = origKeys.map(k=>k.trim().toLowerCase());
       logLine('info', `📋 พบ columns: ${keys.join(', ')}`);
+
+      // คอลัมน์ที่ไม่ใช่ drive (ที่เหลือถือเป็น drive ในไฟล์แนวนอน)
+      const IGNORE = ['store_id','store id','store_name','ชื่อร้านค้า','รวม','total','updated_at'];
+      const driveCols = origKeys.filter(k => !IGNORE.includes(k.trim().toLowerCase()));
+      const hasName   = keys.includes('store_name') || keys.includes('store_id') || keys.includes('ชื่อร้านค้า');
 
       if(keys.includes('roboflow_count') || keys.includes('rf_full') || keys.includes('rf_header')){
         uploadRF(rows, log);
-      } else if(keys.includes('receipts') || keys.includes('drive_name')){
-        uploadReceipts(rows, log);
-      } else if(keys.includes('store_name') || keys.includes('store_id')){
-        uploadStores(rows, log);
+      } else if(keys.includes('drive_name')){
+        uploadReceipts(rows, log);                 // Template 2 (แนวยาว)
+      } else if(hasName && driveCols.length){
+        uploadWide(rows, driveCols, log);          // แนวนอน: drive เป็นคอลัมน์
+      } else if(hasName){
+        uploadStores(rows, log);                   // Template 1 (ชื่อร้านอย่างเดียว)
       } else {
         logLine('err','❌ ไม่รู้จัก template — ตรวจสอบ column headers');
       }
@@ -68,9 +76,10 @@ async function uploadReceipts(rows, log){
     const drive = (row['drive_name']||row['Drive']||'').toString().trim();
     const cnt   = parseInt(row['receipts']||row['total_receipts']||0);
     const mode  = (row['mode']||'replace').toString().trim().toLowerCase();
-    const nm    = (row['store_name']||'').toString().trim();
-    if(!id||!drive||isNaN(cnt)){logLine('warn',`  ⚠ แถว ${i+2}: ข้ามเพราะข้อมูลไม่ครบ`);return}
-    logLine('info',`  ${mode==='add'?'＋':'↺'} ${id} / ${drive}: ${cnt} (${mode})`);
+    const nm    = (row['store_name']||row['ชื่อร้านค้า']||'').toString().trim();
+    // store_id ว่างได้ ถ้ามีชื่อร้าน (backend จับคู่จากชื่อ/สร้าง pending ให้)
+    if((!id&&!nm)||!drive||isNaN(cnt)){logLine('warn',`  ⚠ แถว ${i+2}: ข้ามเพราะข้อมูลไม่ครบ`);return}
+    logLine('info',`  ${mode==='add'?'＋':'↺'} ${id||'('+nm+')'} / ${drive}: ${cnt} (${mode})`);
     data.push({store_id:id, drive_name:drive, receipts:cnt, mode, store_name:nm});
   });
 
@@ -79,6 +88,40 @@ async function uploadReceipts(rows, log){
   if(!res){ logLine('err','❌ บันทึกล้มเหลว'); return; }
   logLine('ok',`✓ ${res.ok} แถวสำเร็จ${res.warn?' ('+res.warn+' คำเตือน)':''}`);
   toast(`✓ อัพ Template 2 → Sheets สำเร็จ`);
+  await fetchFromSheet();
+  refresh();
+}
+
+// อัพไฟล์ "แนวนอน": store_id?/store_name + คอลัมน์ drive หลายอัน → แตกเป็น 1 แถว/drive
+// store_id ว่างได้ (backend จับคู่จากชื่อ/สร้าง pending) · ทุก drive เป็น mode=replace
+async function uploadWide(rows, driveCols, log){
+  logLine('info','📊 ตรวจพบไฟล์แนวนอน — แตก drive แต่ละคอลัมน์เป็นรายการต่อร้าน');
+  logLine('info', `  คอลัมน์ drive: ${driveCols.join(', ')}`);
+  const data = [];
+  let storeCount = 0;
+  rows.forEach((row,i)=>{
+    const id = (row['store_id']||row['Store ID']||'').toString().trim();
+    const nm = (row['store_name']||row['ชื่อร้านค้า']||'').toString().trim();
+    if(!id && !nm) return;                       // แถวว่าง
+    let any = false;
+    driveCols.forEach(dc=>{
+      const raw = row[dc];
+      if(raw===''||raw===undefined||raw===null) return;
+      const v = parseInt(String(raw).replace(/[, ]/g,''));
+      if(isNaN(v)) return;                        // เช่น '-' ข้ามไป
+      data.push({store_id:id, store_name:nm, drive_name:String(dc).trim(), receipts:v, mode:'replace'});
+      any = true;
+    });
+    if(any) storeCount++;
+    else logLine('warn',`  ⚠ แถว ${i+2}: ${nm||id} ไม่มียอด drive — ข้าม`);
+  });
+
+  if(!data.length){ logLine('err','❌ ไม่พบยอด drive ในไฟล์'); return; }
+  logLine('info', `  ส่ง ${data.length} แถว (drive) จาก ${storeCount} ร้าน → Sheets...`);
+  const res = await postToSheet('upsert_receipts', data);
+  if(!res){ logLine('err','❌ บันทึกล้มเหลว'); return; }
+  logLine('ok',`✓ ${res.ok} แถวสำเร็จ${res.warn?' ('+res.warn+' คำเตือน)':''}`);
+  toast('✓ อัพชีตแนวนอน → Sheets สำเร็จ');
   await fetchFromSheet();
   refresh();
 }
@@ -135,6 +178,14 @@ function downloadTemplate(type){
       ['','--- mode: replace=แทนที่ / add=บวกเพิ่ม ---','','',''],
     ];
     sheetName = 'receipts_per_drive';
+  } else if(type==='wide'){
+    data = [
+      ['store_id','store_name','drive1','drive2','drive3'],
+      ['161959','Katsu Midori',88,'',25],
+      ['','ร้านใหม่ไม่มี ID',10,5,''],
+      ['','--- store_id ว่างได้ ระบบจับจากชื่อ/สร้าง pending ให้ · ตั้งชื่อคอลัมน์ drive เองได้ ---','','',''],
+    ];
+    sheetName = 'wide_drives';
   } else {
     data = [
       ['store_id','rf_full','rf_header'],
