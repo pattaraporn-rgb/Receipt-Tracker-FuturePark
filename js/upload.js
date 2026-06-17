@@ -43,8 +43,6 @@ function handleFile(file){
   reader.readAsArrayBuffer(file);
 }
 
-let pendingCounter = 1;
-
 async function uploadStores(rows, log){
   logLine('info','🏪 ตรวจพบ Template 1 — อัพร้านค้า → Google Sheets');
   const data = rows.map(row => ({
@@ -156,20 +154,24 @@ function downloadTemplate(type){
 }
 
 // ══ CLEAR DATA ══
+// NOTE: the Apps Script backend only supports clearing RF (action 'clear_rf').
+// There is no server-side clear for stores/receipts, so those must be cleared in
+// the Google Sheet directly — tell the user instead of faking a success toast.
 async function clearData(what){
-  const msg = what==='all'?'ล้างทุกอย่าง? (ข้อมูลใน Sheet จะหายทั้งหมด)':what==='rf'?'ล้าง RF ทั้งหมดใน Sheet?':'ล้างข้อมูลร้านค้า? (ไม่กระทบ RF)';
-  if(!confirm(msg)) return;
-  if(what==='rf'||what==='all'){
+  if(what==='rf' || what==='all'){
+    if(!confirm(what==='all'
+        ? 'ล้าง RF ทั้งหมดใน Sheet? (ส่วนร้านค้า/ใบเสร็จต้องลบใน Google Sheet เอง)'
+        : 'ล้าง RF ทั้งหมดใน Sheet?')) return;
     const res = await postToSheet('clear_rf', []);
-    if(res) toast('✓ ล้าง RF ใน Sheet แล้ว');
+    if(res){
+      toast('✓ ล้าง RF ใน Sheet แล้ว');
+      await fetchFromSheet();
+      refresh();
+    }
   }
-  if(what==='all'){
-    // clear stores sheet — send empty replace
-    _cache.stores = {}; _cache.rf = {};
-    toast('✓ ล้างข้อมูลทั้งหมดแล้ว (reload เพื่อยืนยัน)');
+  if(what==='receipts' || what==='all'){
+    toast('⚠ ล้างร้านค้า/ใบเสร็จ ต้องลบใน Google Sheet โดยตรง แล้วกด Sync');
   }
-  await fetchFromSheet();
-  refresh();
 }
 
 // ══ URL CONFIG ══

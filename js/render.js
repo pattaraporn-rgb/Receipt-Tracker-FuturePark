@@ -3,6 +3,10 @@
 //  (extracted from receipt-tracker-v2.html · behavior unchanged)
 // ══════════════════════════════════════════════════════
 
+// ══ UTIL ══
+// escape user-derived strings before injecting into innerHTML (prevents HTML injection)
+function esc(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
 // ══ UI ══
 function showPage(p, btn){
   if(p === 'upload' && !_uploadUnlocked){
@@ -49,7 +53,13 @@ function applyCustom(){
   renderMiniList();
 }
 
-function onSearch(){ applyQ(activeQ, document.getElementById('q-'+activeQ)||null) }
+// re-apply the active view (preset query OR custom filter) without crashing on 'custom'
+function reapply(){
+  if(activeQ==='custom') applyCustom();
+  else applyQ(activeQ, document.getElementById('q-'+activeQ)||null);
+}
+
+function onSearch(){ reapply(); }
 
 function resort(){
   const k = document.getElementById('sortSel').value;
@@ -110,15 +120,15 @@ function renderMiniList(){
   if(!filtered.length){wrap.innerHTML='<div style="text-align:center;padding:20px;color:var(--t3);font-size:11px;font-family:var(--mono)">ไม่พบ</div>';return}
   wrap.innerHTML = filtered.map(s=>{
     const dc = s.pending===0?'var(--green)':s.priority>70?'var(--red)':s.priority>35?'var(--yellow)':'var(--t3)';
-    return `<div class="mini-item ${expandedId===s.id?'active':''}" onclick="scrollTo('${s.id}')">
+    return `<div class="mini-item ${expandedId===s.id?'active':''}" onclick="scrollToStore('${s.id}')">
       <div class="mini-dot" style="background:${dc}"></div>
-      <div class="mini-name">${s.name}</div>
+      <div class="mini-name">${esc(s.name)}</div>
       <div class="mini-num">${s.total}</div>
     </div>`;
   }).join('');
 }
 
-function scrollTo(id){
+function scrollToStore(id){
   const row = document.getElementById('tr-'+id);
   if(row){row.scrollIntoView({behavior:'smooth',block:'center'});row.click()}
 }
@@ -156,7 +166,7 @@ function renderTable(){
       const dbc= dp===100?'var(--green)':dp>50?'var(--blue)':dp>0?'var(--yellow)':'var(--red)';
       const ds = dp===100?{t:'✓ ครบแล้ว',c:'var(--green)'}:dp>0?{t:`~${t-Math.round(t*dp/100)} คงเหลือ`,c:'var(--yellow)'}:{t:'ยังไม่อัพเลย',c:'var(--red)'};
       return `<div class="drive-card">
-        <div class="dc-head"><div class="dc-icon">🗂</div><div class="dc-name">${dn}</div></div>
+        <div class="dc-head"><div class="dc-icon">🗂</div><div class="dc-name">${esc(dn)}</div></div>
         <div class="dc-nums">
           <div class="dc-total">${t.toLocaleString()}<span style="font-size:11px;color:var(--t2);font-weight:400"> ใบ</span></div>
           <div class="dc-rf-wrap"><div class="dc-rf-num" style="color:${dbc}">${s.rf}</div><div class="dc-rf-lbl">RF รวม</div></div>
@@ -174,17 +184,17 @@ function renderTable(){
           <div class="sc-dot" style="background:${dc}"></div>
           <div class="sc-info">
             <div class="sc-name">
-              ${s.name} <span class="chevron">›</span>
+              ${esc(s.name)} <span class="chevron">›</span>
               ${isDup?'<span class="dup-warn">⚠ ซ้ำ</span>':''}
               ${s.isPending?'<span class="pending-tag">pending ID</span>':''}
             </div>
-            <div class="sc-id">${s.id} · ${drvKeys.length} drive${drvKeys.length!==1?'s':''}</div>
+            <div class="sc-id">${esc(s.id)} · ${drvKeys.length} drive${drvKeys.length!==1?'s':''}</div>
           </div>
         </div>
       </td>
       <td class="r">
         <div style="display:flex;flex-wrap:wrap;gap:3px;justify-content:flex-end">
-          ${drvKeys.map(d=>`<span style="font-size:9px;font-family:var(--mono);padding:2px 5px;border-radius:3px;background:var(--s3);border:1px solid var(--b1);color:var(--t2)">${d}</span>`).join('')}
+          ${drvKeys.map(d=>`<span style="font-size:9px;font-family:var(--mono);padding:2px 5px;border-radius:3px;background:var(--s3);border:1px solid var(--b1);color:var(--t2)">${esc(d)}</span>`).join('')}
         </div>
       </td>
       <td class="r"><span class="num total">${s.total.toLocaleString()}</span></td>
@@ -227,12 +237,14 @@ function renderDupPage(){
     <div class="dup-item">
       <span class="dup-badge">DUPLICATE</span>
       <div>
-        <div class="dup-name">${d.name}</div>
-        <div class="dup-ids">IDs: ${d.ids.map(id=>`${id} (${stores[id]?.name||'?'})`).join(' / ')}</div>
+        <div class="dup-name">${esc(d.name)}</div>
+        <div class="dup-ids">IDs: ${d.ids.map(id=>`${esc(id)} (${esc(stores[id]?.name||'?')})`).join(' / ')}</div>
       </div>
       <div class="dup-actions">
-        <button class="dup-act-btn" onclick="requirePin(()=>mergeDup('${d.ids[0]}','${d.ids[1]}'))">Merge → เก็บ ${d.ids[0]}</button>
-        <button class="dup-act-btn danger" onclick="requirePin(()=>deleteDup('${d.ids[1]}'))">ลบ ${d.ids[1]}</button>
+        ${d.ids.slice(1).map(rid=>`
+          <button class="dup-act-btn" onclick="requirePin(()=>mergeDup('${d.ids[0]}','${rid}'))">Merge ${esc(rid)} → ${esc(d.ids[0])}</button>
+          <button class="dup-act-btn danger" onclick="requirePin(()=>deleteDup('${rid}'))">ลบ ${esc(rid)}</button>
+        `).join('')}
       </div>
     </div>
   `).join('');
@@ -298,5 +310,5 @@ function toast(msg){
 // ══ REFRESH ALL ══
 function refresh(){
   updateGlobal();
-  applyQ(activeQ, document.getElementById('q-'+activeQ)||null);
+  reapply();
 }

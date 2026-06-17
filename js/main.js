@@ -6,7 +6,7 @@
 // ══ SEED DEMO DATA (ถ้ายังไม่มีข้อมูล) ══
 function seedIfEmpty(){
   // Always seed demo data into memory (ล้างด้วย reset button ได้)
-  if(Object.keys(_mem_stores).length > 0) return;
+  if(Object.keys(_cache.stores).length > 0) return;
 
   const DEMO_STORES = {
     '100218':{ name:'ฮะจิบัง ราเมน', drives:{'drive1_27mar2026':20,'drive3Rocket_03042026':25} },
@@ -50,18 +50,6 @@ function seedIfEmpty(){
 
   saveStores(DEMO_STORES);
   saveRF(DEMO_RF);
-}
-
-// ══ SYNC BUTTON ══
-async function doSync(btn){
-  if(!isConfigured()){
-    toast('⚠ ยังไม่ได้ใส่ Apps Script URL — ไปที่แท็บ อัพโหลด');
-    return;
-  }
-  btn.classList.add('spinning');
-  const ok = await fetchFromSheet();
-  btn.classList.remove('spinning');
-  if(ok){ toast('✓ Sync จาก Google Sheets สำเร็จ'); refresh(); }
 }
 
 // ══ BOOT ══
