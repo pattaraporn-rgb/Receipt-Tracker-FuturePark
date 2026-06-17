@@ -22,15 +22,19 @@ function computeStores(){
 }
 
 // ══ DUPLICATE DETECTION ══
+// normalize a store name for matching: drop case, spaces and - _ . , / punctuation
+// so variants like "mr diy" / "MR-DIY" / "Mr.DIY" collapse to the same key
+function normName(s){ return (s||'').toString().toLowerCase().replace(/[\s\-_.,/]+/g,''); }
+
 function findDuplicates(){
   const stores = loadStores();
-  const nameMap = {};
+  const map = {};
   Object.entries(stores).forEach(([id,s])=>{
-    const n = (s.name||'').toLowerCase().trim();
-    if(!nameMap[n]) nameMap[n]=[];
-    nameMap[n].push(id);
+    const key = normName(s.name);
+    if(!key) return;                       // skip blank names
+    (map[key] = map[key] || { name: s.name, ids: [] }).ids.push(id);
   });
-  return Object.entries(nameMap).filter(([,ids])=>ids.length>1).map(([name,ids])=>({name,ids}));
+  return Object.values(map).filter(g=>g.ids.length>1);
 }
 
 // ══ STATE ══

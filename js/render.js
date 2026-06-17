@@ -137,7 +137,7 @@ function scrollToStore(id){
 function renderTable(){
   const tbody = document.getElementById('tbody');
   const dups  = findDuplicates();
-  const dupNames = new Set(dups.map(d=>d.name.toLowerCase()));
+  const dupKeys  = new Set(dups.map(d=>normName(d.name)));
   const stores   = loadStores();
 
   if(!filtered.length){
@@ -155,7 +155,7 @@ function renderTable(){
     const dc  = s.pending===0?'var(--green)':s.priority>70?'var(--red)':s.priority>35?'var(--yellow)':'var(--t3)';
     const pc  = s.pending===0?'done':s.priority>70?'high':s.priority>35?'mid':'low';
     const pl  = s.pending===0?'✓ Done':s.priority>70?'🔴 สูง':s.priority>35?'🟡 กลาง':'🟢 ต่ำ';
-    const isDup= dupNames.has(s.name.toLowerCase());
+    const isDup= dupKeys.has(normName(s.name));
     const drvKeys = Object.keys(s.drives||{});
 
     // drive detail cards
