@@ -29,7 +29,8 @@ function handleFile(file){
       logLine('info', `📋 พบ columns: ${keys.join(', ')}`);
 
       // คอลัมน์ที่ไม่ใช่ drive (ที่เหลือถือเป็น drive ในไฟล์แนวนอน)
-      const IGNORE = ['store_id','store id','store_name','ชื่อร้านค้า','รวม','total','updated_at'];
+      const IGNORE = ['store_id','store id','store_name','ชื่อร้านค้า','รวม','total','updated_at',
+                      'rf_full','rf_header','roboflow_count','rf ใบเสร็จเต็ม','rf หัวใบเสร็จ'];
       const driveCols = origKeys.filter(k => !IGNORE.includes(k.trim().toLowerCase()));
       const hasName   = keys.includes('store_name') || keys.includes('store_id') || keys.includes('ชื่อร้านค้า');
 
@@ -180,10 +181,10 @@ function downloadTemplate(type){
     sheetName = 'receipts_per_drive';
   } else if(type==='wide'){
     data = [
-      ['store_id','store_name','drive1','drive2','drive3'],
-      ['161959','Katsu Midori',88,'',25],
-      ['','ร้านใหม่ไม่มี ID',10,5,''],
-      ['','--- store_id ว่างได้ ระบบจับจากชื่อ/สร้าง pending ให้ · ตั้งชื่อคอลัมน์ drive เองได้ ---','','',''],
+      ['store_id','store_name','drive1','drive2','drive3','drive4','drive5','drive6'],
+      ['161959','Katsu Midori',88,'',25,'',12,''],
+      ['','ร้านใหม่ไม่มี ID',10,5,'','','',''],
+      ['','--- store_id ว่างได้ · เพิ่มคอลัมน์ drive ได้ไม่จำกัด ตั้งชื่อเองได้ · คอลัมน์ รวม/RF ระบบข้ามให้ ---','','','','','',''],
     ];
     sheetName = 'wide_drives';
   } else {
