@@ -74,13 +74,13 @@ function updateGlobal(){
   const all  = computeStores();
   const dups = findDuplicates();
   const tot  = all.reduce((a,s)=>a+s.total,0);
-  const rf   = all.reduce((a,s)=>a+s.rf,0);                       // raw full+header count
+  const rawFull   = all.reduce((a,s)=>a+s.rfFull,0);              // RF เต็ม ที่อัพแล้ว (จำนวนจริง)
+  const rawHeader = all.reduce((a,s)=>a+s.rfHeader,0);            // RF หัว ที่อัพแล้ว
   const rfF  = all.reduce((a,s)=>a+Math.min(s.rfFull,s.total),0); // capped to total for %
   const rfH  = all.reduce((a,s)=>a+Math.min(s.rfHeader,s.total),0);
-  const pend = all.reduce((a,s)=>a+s.pending,0);
   const pctF = tot>0 ? Math.round(rfF/tot*100) : 0;               // each class vs total receipts
   const pctH = tot>0 ? Math.round(rfH/tot*100) : 0;
-  const pct  = tot>0 ? Math.round((rfF+rfH)/(2*tot)*100) : 0;     // combined progress
+  const pct  = tot>0 ? Math.round((rfF+rfH)/(2*tot)*100) : 0;     // combined progress (RF bar)
   const driveSet = new Set();
   const stores = loadStores();
   Object.values(stores).forEach(s=>Object.keys(s.drives||{}).forEach(d=>driveSet.add(d)));
@@ -88,10 +88,10 @@ function updateGlobal(){
   document.getElementById('g-stores').textContent = all.length.toLocaleString();
   document.getElementById('g-drives-sub').textContent = `${driveSet.size} drive${driveSet.size!==1?'s':''}`;
   document.getElementById('g-total').textContent   = tot.toLocaleString();
-  document.getElementById('g-rf').textContent      = rf.toLocaleString();
-  document.getElementById('g-rf-sub').textContent  = `เต็ม ${pctF}% · หัว ${pctH}%`;
-  document.getElementById('g-pending').textContent = pend.toLocaleString();
-  document.getElementById('g-pending-sub').textContent = `รวมคืบหน้า ${pct}%`;
+  document.getElementById('g-rf').textContent      = rawFull.toLocaleString();
+  document.getElementById('g-rf-sub').textContent  = `${pctF}% ของใบเสร็จ`;
+  document.getElementById('g-pending').textContent = rawHeader.toLocaleString();
+  document.getElementById('g-pending-sub').textContent = `${pctH}% ของใบเสร็จ`;
 
   setTimeout(()=>{
     const el = document.getElementById('rf-fill');
