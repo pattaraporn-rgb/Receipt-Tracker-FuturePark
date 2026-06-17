@@ -33,7 +33,14 @@ async function fetchFromSheet(){
     _cache.rf = {};
     d.stores.forEach(s => {
       _cache.stores[s.id] = { name: s.name, drives: s.drives };
-      if(s.rf !== undefined) _cache.rf[s.id] = s.rf;
+      // RF per class (column N = ใบเสร็จเต็ม, O = หัวใบเสร็จ);
+      // fall back to the legacy single `rf` field so the app keeps working
+      // until the Apps Script backend starts returning rf_full / rf_header.
+      if(s.rf_full !== undefined || s.rf_header !== undefined){
+        _cache.rf[s.id] = { full: s.rf_full||0, header: s.rf_header||0 };
+      } else if(s.rf !== undefined){
+        _cache.rf[s.id] = { full: s.rf, header: 0 };
+      }
     });
     _cache.ts = d.ts;
     _dirty = false;

@@ -27,7 +27,7 @@ function handleFile(file){
       const keys = Object.keys(rows[0]).map(k=>k.trim().toLowerCase());
       logLine('info', `📋 พบ columns: ${keys.join(', ')}`);
 
-      if(keys.includes('roboflow_count')){
+      if(keys.includes('roboflow_count') || keys.includes('rf_full') || keys.includes('rf_header')){
         uploadRF(rows, log);
       } else if(keys.includes('receipts') || keys.includes('drive_name')){
         uploadReceipts(rows, log);
@@ -84,15 +84,16 @@ async function uploadReceipts(rows, log){
 }
 
 async function uploadRF(rows, log){
-  logLine('info','🤖 ตรวจพบ Template 3 — อัพ Roboflow → Google Sheets (replace ทั้งหมด)');
+  logLine('info','🤖 ตรวจพบ Template 3 — อัพ Roboflow (เต็ม/หัว) → Google Sheets (replace ทั้งหมด)');
   const data = [];
-  let warn = 0;
   rows.forEach((row,i)=>{
-    const id  = (row['store_id']||row['Store ID']||'').toString().trim();
-    const cnt = parseInt(row['roboflow_count']||row['RF']||0);
-    if(!id){logLine('warn',`  ⚠ แถว ${i+2}: ไม่มี store_id`);warn++;return}
-    if(isNaN(cnt)){logLine('warn',`  ⚠ แถว ${i+2}: ตัวเลข RF ไม่ถูกต้อง`);warn++;return}
-    data.push({store_id:id, roboflow_count:cnt});
+    const id   = (row['store_id']||row['Store ID']||'').toString().trim();
+    // รองรับคอลัมน์ใหม่ rf_full / rf_header และของเดิม roboflow_count (→ ใบเสร็จเต็ม)
+    const full = parseInt(row['rf_full']||row['roboflow_count']||row['RF']||0);
+    const head = parseInt(row['rf_header']||0);
+    if(!id){logLine('warn',`  ⚠ แถว ${i+2}: ไม่มี store_id`);return}
+    if(isNaN(full)&&isNaN(head)){logLine('warn',`  ⚠ แถว ${i+2}: ตัวเลข RF ไม่ถูกต้อง`);return}
+    data.push({store_id:id, rf_full:isNaN(full)?0:full, rf_header:isNaN(head)?0:head});
   });
 
   logLine('warn', `  ↻ จะล้าง RF เก่าทั้งหมด แล้วใส่ใหม่ ${data.length} ร้าน...`);
@@ -136,12 +137,12 @@ function downloadTemplate(type){
     sheetName = 'receipts_per_drive';
   } else {
     data = [
-      ['store_id','roboflow_count'],
-      ['100033',95],
-      ['100156',12],
-      ['100218',27],
-      ['',''],
-      ['','--- replace ทั้งหมดเสมอ ใส่ทุกร้านที่อยู่ใน RF ---'],
+      ['store_id','rf_full','rf_header'],
+      ['100033',95,80],
+      ['100156',12,10],
+      ['100218',27,20],
+      ['','',''],
+      ['','--- rf_full = ใบเสร็จเต็ม · rf_header = หัวใบเสร็จ · replace ทั้งหมดเสมอ ---',''],
     ];
     sheetName = 'roboflow';
   }

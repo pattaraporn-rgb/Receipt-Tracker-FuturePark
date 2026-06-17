@@ -49,7 +49,10 @@ function seedIfEmpty(){
   };
 
   saveStores(DEMO_STORES);
-  saveRF(DEMO_RF);
+  // demo RF in the new 2-class shape (header ≈ 70% of full, just for illustration)
+  const demoRf = {};
+  Object.entries(DEMO_RF).forEach(([id,n])=>{ demoRf[id] = { full:n, header:Math.round(n*0.7) }; });
+  saveRF(demoRf);
 }
 
 // ══ BOOT ══

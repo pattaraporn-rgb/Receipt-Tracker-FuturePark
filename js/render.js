@@ -74,9 +74,13 @@ function updateGlobal(){
   const all  = computeStores();
   const dups = findDuplicates();
   const tot  = all.reduce((a,s)=>a+s.total,0);
-  const rf   = all.reduce((a,s)=>a+s.rf,0);
+  const rf   = all.reduce((a,s)=>a+s.rf,0);                       // raw full+header count
+  const rfF  = all.reduce((a,s)=>a+Math.min(s.rfFull,s.total),0); // capped to total for %
+  const rfH  = all.reduce((a,s)=>a+Math.min(s.rfHeader,s.total),0);
   const pend = all.reduce((a,s)=>a+s.pending,0);
-  const pct  = tot>0 ? Math.round(rf/tot*100) : 0;
+  const pctF = tot>0 ? Math.round(rfF/tot*100) : 0;               // each class vs total receipts
+  const pctH = tot>0 ? Math.round(rfH/tot*100) : 0;
+  const pct  = tot>0 ? Math.round((rfF+rfH)/(2*tot)*100) : 0;     // combined progress
   const driveSet = new Set();
   const stores = loadStores();
   Object.values(stores).forEach(s=>Object.keys(s.drives||{}).forEach(d=>driveSet.add(d)));
@@ -85,14 +89,14 @@ function updateGlobal(){
   document.getElementById('g-drives-sub').textContent = `${driveSet.size} drive${driveSet.size!==1?'s':''}`;
   document.getElementById('g-total').textContent   = tot.toLocaleString();
   document.getElementById('g-rf').textContent      = rf.toLocaleString();
-  document.getElementById('g-rf-sub').textContent  = `${pct}% ของทั้งหมด`;
+  document.getElementById('g-rf-sub').textContent  = `เต็ม ${pctF}% · หัว ${pctH}%`;
   document.getElementById('g-pending').textContent = pend.toLocaleString();
-  document.getElementById('g-pending-sub').textContent = `เหลือ ${100-pct}%`;
+  document.getElementById('g-pending-sub').textContent = `รวมคืบหน้า ${pct}%`;
 
   setTimeout(()=>{
     const el = document.getElementById('rf-fill');
     el.style.width = pct+'%';
-    el.textContent = rf.toLocaleString()+' ใบ';
+    el.textContent = `เต็ม ${pctF}% · หัว ${pctH}%`;
     document.getElementById('rf-pct').textContent = pct+'%';
   }, 200);
 
@@ -150,8 +154,8 @@ function renderTable(){
   }
 
   tbody.innerHTML = filtered.map((s,i)=>{
-    const pct = s.pct;
-    const bc  = pct===100?'var(--green)':pct>50?'var(--blue)':pct>0?'var(--yellow)':'var(--red)';
+    const colFor = p => p===100?'var(--green)':p>50?'var(--blue)':p>0?'var(--yellow)':'var(--red)';
+    const cFull = colFor(s.pctFull), cHeader = colFor(s.pctHeader);
     const dc  = s.pending===0?'var(--green)':s.priority>70?'var(--red)':s.priority>35?'var(--yellow)':'var(--t3)';
     const pc  = s.pending===0?'done':s.priority>70?'high':s.priority>35?'mid':'low';
     const pl  = s.pending===0?'✓ Done':s.priority>70?'🔴 สูง':s.priority>35?'🟡 กลาง':'🟢 ต่ำ';
@@ -161,18 +165,17 @@ function renderTable(){
     // drive detail cards
     const driveCards = drvKeys.map(dn=>{
       const t  = s.drives[dn]||0;
-      const rfD= s.rf; // simplified: RF per drive not tracked separately
-      const dp = t>0?Math.round(Math.min(s.rf,t)/t*100):0;
-      const dbc= dp===100?'var(--green)':dp>50?'var(--blue)':dp>0?'var(--yellow)':'var(--red)';
-      const ds = dp===100?{t:'✓ ครบแล้ว',c:'var(--green)'}:dp>0?{t:`~${t-Math.round(t*dp/100)} คงเหลือ`,c:'var(--yellow)'}:{t:'ยังไม่อัพเลย',c:'var(--red)'};
       return `<div class="drive-card">
         <div class="dc-head"><div class="dc-icon">🗂</div><div class="dc-name">${esc(dn)}</div></div>
         <div class="dc-nums">
           <div class="dc-total">${t.toLocaleString()}<span style="font-size:11px;color:var(--t2);font-weight:400"> ใบ</span></div>
-          <div class="dc-rf-wrap"><div class="dc-rf-num" style="color:${dbc}">${s.rf}</div><div class="dc-rf-lbl">RF รวม</div></div>
+          <div class="dc-rf-wrap">
+            <div class="dc-rf-num" style="color:${cFull}">เต็ม ${s.rfFull}</div>
+            <div class="dc-rf-num" style="color:${cHeader};font-size:11px">หัว ${s.rfHeader}</div>
+          </div>
         </div>
-        <div class="dc-bar"><div class="dc-fill" style="width:${dp}%;background:${dbc}"></div></div>
-        <div class="dc-status" style="color:${ds.c}">${ds.t}</div>
+        <div class="dc-bar"><div class="dc-fill" style="width:${s.pct}%;background:${colFor(s.pct)}"></div></div>
+        <div class="dc-status" style="color:var(--t2)">RF รวมทั้งร้าน (ไม่แยกตาม drive)</div>
       </div>`;
     }).join('');
 
@@ -198,14 +201,21 @@ function renderTable(){
         </div>
       </td>
       <td class="r"><span class="num total">${s.total.toLocaleString()}</span></td>
-      <td class="r"><span class="num g">${s.rf.toLocaleString()}</span></td>
-      <td class="r"><span class="num ${s.pending>0?'y':'d'}">${s.pending.toLocaleString()}</span></td>
       <td class="r">
         <div class="rf-bar-cell">
-          <div class="rf-track-sm"><div class="rf-fill-sm" style="width:${pct}%;background:${bc}"></div></div>
-          <span class="rf-pct-sm">${pct}%</span>
+          <span class="num g">${s.rfFull.toLocaleString()}</span>
+          <div class="rf-track-sm"><div class="rf-fill-sm" style="width:${s.pctFull}%;background:${cFull}"></div></div>
+          <span class="rf-pct-sm">${s.pctFull}%</span>
         </div>
       </td>
+      <td class="r">
+        <div class="rf-bar-cell">
+          <span class="num g">${s.rfHeader.toLocaleString()}</span>
+          <div class="rf-track-sm"><div class="rf-fill-sm" style="width:${s.pctHeader}%;background:${cHeader}"></div></div>
+          <span class="rf-pct-sm">${s.pctHeader}%</span>
+        </div>
+      </td>
+      <td class="r"><span class="num ${s.pending>0?'y':'d'}">${s.pending.toLocaleString()}</span></td>
       <td class="r"><span class="pri ${pc}">${pl}</span></td>
     </tr>
     <tr id="exp-${s.id}" class="exp-row ${expandedId===s.id?'open':''}">
@@ -284,9 +294,9 @@ function deleteDup(id){
 
 // ══ EXPORT CSV ══
 function exportCSV(){
-  const rows=[['#','Store ID','ชื่อร้านค้า','Drives','Total','RF_อัพแล้ว','Pending','RF_%','Priority','is_pending_id']];
+  const rows=[['#','Store ID','ชื่อร้านค้า','Drives','Total','RF_เต็ม','RF_เต็ม_%','RF_หัว','RF_หัว_%','Pending','คืบหน้า_%','Priority','is_pending_id']];
   filtered.forEach((s,i)=>{
-    rows.push([i+1,s.id,s.name,Object.keys(s.drives).join('|'),s.total,s.rf,s.pending,s.pct+'%',s.priority,s.isPending?'YES':'']);
+    rows.push([i+1,s.id,s.name,Object.keys(s.drives).join('|'),s.total,s.rfFull,s.pctFull+'%',s.rfHeader,s.pctHeader+'%',s.pending,s.pct+'%',s.priority,s.isPending?'YES':'']);
   });
   const csv = rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
   const a   = document.createElement('a');
